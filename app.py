@@ -1,185 +1,192 @@
 import streamlit as st
-import random
+import time
 
-# --- Datos simulados de estudiantes ---
-students = {
-    "stu001": {
-        "name": "Juan Pérez",
-        "career": "Ingeniería de Sistemas",
-        "semester": "1er Semestre",
-        "gpa": 15.6,
-        "strengths": ["Teoría de Sistemas", "Física"],
-        "weaknesses": ["Redacción", "Cálculo"]
-    },
-    "stu002": {
-        "name": "María García",
-        "career": "Ingeniería Civil",
-        "semester": "2do Semestre",
-        "gpa": 14.3,
-        "strengths": ["Estática", "Geometría"],
-        "weaknesses": ["Programación", "Redacción"]
-    },
-    "stu003": {
-        "name": "Carlos López",
-        "career": "Psicología",
-        "semester": "3er Semestre",
-        "gpa": 16.1,
-        "strengths": ["Psicología Cognitiva", "Estadística"],
-        "weaknesses": ["Biología", "Filosofía"]
-    }
-}
-
-# --- Recomendaciones comunes ---
-recommendations = [
+# ✅ Base de datos de estudiantes
+studentsDB = [
     {
-        "type": "Recurso de Aprendizaje",
-        "title": "Taller de Redacción Académica",
-        "description": "Mejora tus habilidades de escritura y comprensión lectora",
-        "priority": "Alta",
-        "estimated_time": "4 semanas"
+        "id": "stu001",
+        "password": "stu001",
+        "nombre": "Juan Pérez",
+        "carrera": "Ingeniería de Sistemas",
+        "semestre": "1er Semestre",
+        "promedio": 14.5,
+        "fortalezas": ["Física", "Teoría de Sistemas"],
+        "areasMejora": ["Cálculo", "Redacción"],
+        "materiasCompletas": ["Álgebra", "Geometría"],
+        "proximosExamenes": ["Cálculo - 15/07/2025", "Redacción - 20/07/2025"],
+        "tareasPendientes": 3,
+        "horasEstudio": 25
     },
     {
-        "type": "Tutoría",
-        "title": "Tutoría en Cálculo",
-        "description": "Refuerzo en límites y derivadas",
-        "priority": "Alta",
-        "estimated_time": "2 horas semanales"
+        "id": "stu002",
+        "password": "stu002",
+        "nombre": "María Gómez",
+        "carrera": "Ingeniería Civil",
+        "semestre": "2do Semestre",
+        "promedio": 16.8,
+        "fortalezas": ["Matemática", "Programación"],
+        "areasMejora": ["Inglés", "Historia"],
+        "materiasCompletas": ["Algoritmos", "Estructuras de Datos"],
+        "proximosExamenes": ["Inglés - 18/07/2025", "Historia - 22/07/2025"],
+        "tareasPendientes": 1,
+        "horasEstudio": 32
     },
     {
-        "type": "Actividad Práctica",
-        "title": "Laboratorio de Física",
-        "description": "Fortalece tus conceptos teóricos con práctica",
-        "priority": "Media",
-        "estimated_time": "3 horas semanales"
+        "id": "stu003",
+        "password": "stu003",
+        "nombre": "Carlos López",
+        "carrera": "Psicología",
+        "semestre": "3er Semestre",
+        "promedio": 13.2,
+        "fortalezas": ["Química", "Biología"],
+        "areasMejora": ["Estadística", "Literatura"],
+        "materiasCompletas": ["Química Orgánica"],
+        "proximosExamenes": ["Estadística - 16/07/2025", "Literatura - 25/07/2025"],
+        "tareasPendientes": 5,
+        "horasEstudio": 18
     }
 ]
 
-# --- Simulación de respuestas IA sin API ---
-def simulated_response(message, student):
-    msg = message.lower()
-    responses = []
-
-    if any(word in msg for word in ["hola", "buenas", "hey"]):
-        responses = [
-            f"¡Hola {student['name']}! ¿En qué puedo ayudarte hoy?",
-            "¡Bienvenido de nuevo! Estoy aquí para apoyarte.",
-            "Saludos, listo para ayudarte en tu camino académico."
-        ]
-    elif "promedio" in msg or "nota" in msg:
-        responses = [
-            f"Tu promedio actual es de {student['gpa']} sobre 20.",
-            f"Estás manteniendo un promedio de {student['gpa']} puntos. ¡Sigue así!",
-            f"Tu rendimiento actual es de {student['gpa']}/20."
-        ]
-    elif "fortaleza" in msg or "bueno" in msg:
-        strengths = ", ".join(student['strengths'])
-        responses = [
-            f"Destacas especialmente en: {strengths}.",
-            f"Tus principales fortalezas académicas son: {strengths}.",
-            f"Excelente trabajo en: {strengths}."
-        ]
-    elif "debilidad" in msg or "mejorar" in msg:
-        weaknesses = ", ".join(student['weaknesses'])
-        responses = [
-            f"Podrías mejorar en: {weaknesses}.",
-            f"Te recomiendo reforzar estas áreas: {weaknesses}.",
-            f"Áreas a mejorar detectadas: {weaknesses}."
-        ]
-    elif "recomendación" in msg or "sugerencia" in msg:
-        responses = [
-            "Puedes revisar la pestaña de recomendaciones para recursos útiles.",
-            "Te sugiero revisar los talleres disponibles en tu sección de recomendaciones.",
-            "Las recomendaciones están personalizadas en la pestaña correspondiente."
-        ]
-    else:
-        responses = [
-            "Puedes preguntarme por tu promedio, fortalezas, debilidades o recomendaciones.",
-            "Estoy aquí para ayudarte con tu rendimiento académico.",
-            "No entendí bien tu mensaje, pero puedo ayudarte con tu progreso académico."
-        ]
-
-    return random.choice(responses)
-
-# --- Configuración de sesión ---
-st.set_page_config("IA Asesor Académico", layout="centered")
-
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-if "current_id" not in st.session_state:
-    st.session_state.current_id = None
-if "chat" not in st.session_state:
-    st.session_state.chat = []
-
-st.title("🧠 IA Asesor Académico")
-st.caption("Universidad Nacional del Centro del Perú — Proyecto 2025")
-
-# --- Inicio de sesión ---
-if not st.session_state.logged_in:
-    st.subheader("🔐 Iniciar Sesión")
-    user_id = st.text_input("Ingresa tu ID de estudiante (ej. stu001)")
-    if st.button("Ingresar"):
-        if user_id in students:
-            st.session_state.logged_in = True
-            st.session_state.current_id = user_id
-            st.success("Inicio de sesión exitoso")
-        else:
-            st.error("ID no válido. Usa stu001, stu002 o stu003")
-    st.stop()
-
-# --- Datos del estudiante logueado ---
-student = students[st.session_state.current_id]
-
-# --- Menú lateral ---
-st.sidebar.title("👤 Menú")
-st.sidebar.write(f"Estudiante: {student['name']}")
-if st.sidebar.button("Cerrar sesión"):
-    st.session_state.logged_in = False
-    st.session_state.current_id = None
-    st.session_state.chat = []
-    st.rerun()
-
-tab = st.sidebar.radio("Ir a:", ["📊 Panel", "🎯 Recomendaciones", "💬 Asistente", "📋 Perfil"])
-
-# --- Panel de rendimiento ---
-if tab == "📊 Panel":
-    st.subheader("📊 Panel de Rendimiento Académico")
-    st.metric("Promedio General", f"{student['gpa']}/20")
-    st.write("### Fortalezas")
-    st.success(", ".join(student["strengths"]))
-    st.write("### Áreas de Mejora")
-    st.warning(", ".join(student["weaknesses"]))
-
-# --- Recomendaciones ---
-elif tab == "🎯 Recomendaciones":
-    st.subheader("🎯 Recomendaciones Personalizadas")
-    for rec in recommendations:
-        with st.expander(f"{rec['title']} [{rec['priority']}]"):
-            st.write(f"**Tipo:** {rec['type']}")
-            st.write(rec["description"])
-            st.write(f"⏳ Tiempo estimado: {rec['estimated_time']}")
-
-# --- Chat Asistente ---
-elif tab == "💬 Asistente":
-    st.subheader("💬 Chat con tu Asistente IA")
-    for entry in st.session_state.chat:
-        if entry["role"] == "user":
-            st.write(f"🧑 Tú: {entry['msg']}")
-        else:
-            st.info(f"🤖 IA: {entry['msg']}")
-    message = st.text_input("Escribe tu mensaje", key="chat_input")
-    if st.button("Enviar"):
-        if message.strip():
-            st.session_state.chat.append({"role": "user", "msg": message})
-            response = simulated_response(message, student)
-            st.session_state.chat.append({"role": "bot", "msg": response})
+# ✅ Login
+def login():
+    st.title("🔐 Asesor Académico")
+    id_input = st.text_input("ID de Estudiante")
+    pwd_input = st.text_input("Contraseña", type="password")
+    if st.button("Iniciar Sesión"):
+        user = next((u for u in studentsDB if u["id"] == id_input and u["password"] == pwd_input), None)
+        if user:
+            st.session_state.user = user
+            st.session_state.page = "Dashboard"
             st.rerun()
+        else:
+            st.error("❌ Credenciales incorrectas")
 
-# --- Perfil del estudiante ---
-elif tab == "📋 Perfil":
-    st.subheader("📋 Perfil del Estudiante")
-    st.write(f"**Nombre:** {student['name']}")
-    st.write(f"**Carrera:** {student['career']}")
-    st.write(f"**Semestre:** {student['semester']}")
-    st.write(f"**Promedio:** {student['gpa']}")
-    st.write(f"**Fortalezas:** {', '.join(student['strengths'])}")
-    st.write(f"**Áreas de Mejora:** {', '.join(student['weaknesses'])}")
+# ✅ Menú lateral fijo
+def sidebar_menu():
+    st.sidebar.title("📋 Menú")
+    menu = st.sidebar.radio("Navegación", ["🏠 Dashboard", "📈 Recomendaciones", "🤖 Asistente ARIA", "👤 Perfil", "🚪 Cerrar Sesión"])
+    if menu == "🚪 Cerrar Sesión":
+        st.session_state.user = None
+        st.session_state.page = "Dashboard"
+        st.rerun()
+    else:
+        st.session_state.page = menu
+
+# ✅ Dashboard
+def dashboard(user):
+    st.title("🏠 Dashboard")
+    st.header(f"👋 Bienvenido, {user['nombre']}")
+    col1, col2, col3 = st.columns(3)
+    col1.metric("📊 Promedio General", user['promedio'])
+    col2.metric("📌 Tareas Pendientes", user['tareasPendientes'])
+    col3.metric("🕒 Horas de Estudio", f"{user['horasEstudio']}h")
+
+    st.subheader("🎯 Fortalezas")
+    for f in user['fortalezas']:
+        st.success(f"✔️ {f}")
+
+    st.subheader("⚠️ Áreas de Oportunidad")
+    for a in user['areasMejora']:
+        st.warning(f"🔶 {a}")
+
+# ✅ Recomendaciones con colores mejorados
+def recomendaciones(user):
+    st.title("📈 Recomendaciones")
+    st.markdown("Aquí tienes recomendaciones personalizadas para mejorar tu rendimiento académico.")
+
+    # 🎨 Tarjetas para áreas de mejora
+    for area in user['areasMejora']:
+        st.markdown(
+            f"""
+            <div style="
+                border:1px solid #EF9A9A;
+                border-radius:12px;
+                padding:15px;
+                margin-bottom:15px;
+                background-color:#FFEBEE;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            ">
+                <h4 style="color:#C62828; margin:0;">🔴 Reforzar: {area}</h4>
+                <p style="color:#555;">💡 Es importante que trabajes en <b>{area}</b> para fortalecer tu desempeño en esta área.</p>
+                <p style="color:#777;">📅 Considera sesiones de estudio semanales para consolidar el aprendizaje.</p>
+            </div>
+            """, unsafe_allow_html=True
+        )
+
+    # 🎨 Tarjetas para fortalezas
+    for fortaleza in user['fortalezas']:
+        st.markdown(
+            f"""
+            <div style="
+                border:1px solid #A5D6A7;
+                border-radius:12px;
+                padding:15px;
+                margin-bottom:15px;
+                background-color:#E8F5E9;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            ">
+                <h4 style="color:#2E7D32; margin:0;">🟢 Mantener: {fortaleza}</h4>
+                <p style="color:#555;">🎯 Continúa reforzando tus conocimientos en <b>{fortaleza}</b>.</p>
+                <p style="color:#777;">📖 Considera profundizar con materiales avanzados o participar en tutorías especializadas.</p>
+            </div>
+            """, unsafe_allow_html=True
+        )
+
+# ✅ Asistente ARIA
+def asistente_aria(user):
+    st.title("🤖 Asistente ARIA")
+    st.info(f"Hola {user['nombre']} 👋, soy ARIA. Pregúntame sobre matemáticas o temas académicos.")
+    if "messages" not in st.session_state:
+        st.session_state.messages = [{"sender": "aria", "text": "¡Hola! Soy ARIA, tu asistente académico."}]
+
+    for msg in st.session_state.messages:
+        if msg["sender"] == "user":
+            st.chat_message("user").markdown(f"**Tú:** {msg['text']}")
+        else:
+            st.chat_message("assistant").markdown(f"**ARIA:** {msg['text']}")
+
+    user_input = st.chat_input("Escribe tu mensaje aquí...")
+    if user_input:
+        st.session_state.messages.append({"sender": "user", "text": user_input})
+        st.chat_message("user").markdown(f"**Tú:** {user_input}")
+
+        with st.chat_message("assistant"):
+            with st.spinner("ARIA está escribiendo..."):
+                time.sleep(1.2)
+                try:
+                    result = eval(user_input)
+                    response = f"📐 El resultado de '{user_input}' es: {result}"
+                except:
+                    response = "🤖 No entendí eso. Intenta con una operación matemática."
+                st.session_state.messages.append({"sender": "aria", "text": response})
+                st.markdown(f"**ARIA:** {response}")
+
+# ✅ Perfil
+def perfil(user):
+    st.title("👤 Perfil del Usuario")
+    st.write(f"**Nombre:** {user['nombre']}")
+    st.write(f"**Carrera:** {user['carrera']}")
+    st.write(f"**Semestre:** {user['semestre']}")
+    st.write(f"**Promedio:** {user['promedio']}")
+    st.write(f"**Horas de Estudio:** {user['horasEstudio']}")
+    st.write(f"**Materias Completas:** {', '.join(user['materiasCompletas'])}")
+    st.write(f"**Próximos Exámenes:** {', '.join(user['proximosExamenes'])}")
+
+# ✅ App principal
+if "user" not in st.session_state:
+    st.session_state.user = None
+if "page" not in st.session_state:
+    st.session_state.page = "Dashboard"
+
+if st.session_state.user:
+    sidebar_menu()
+    if st.session_state.page == "🏠 Dashboard":
+        dashboard(st.session_state.user)
+    elif st.session_state.page == "📈 Recomendaciones":
+        recomendaciones(st.session_state.user)
+    elif st.session_state.page == "🤖 Asistente ARIA":
+        asistente_aria(st.session_state.user)
+    elif st.session_state.page == "👤 Perfil":
+        perfil(st.session_state.user)
+else:
+    login()
